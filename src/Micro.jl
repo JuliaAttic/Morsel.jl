@@ -48,6 +48,7 @@ function route(handler::Function, app::App, methods::Int, path::String)
     end
     app
 end
+route(a::App, m::Int, p::String, h::Function) = route(h, a, m, p)
 
 function prepare_response(s::String, req::Request, res::Response)
     res.data = s
