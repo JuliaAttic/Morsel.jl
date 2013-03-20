@@ -13,6 +13,11 @@ export GET,
        App,
        app,
        route,
+       get,
+       post,
+       put,
+       update,
+       delete,
        start,
 
        # from Routes
@@ -49,6 +54,12 @@ function route(handler::Function, app::App, methods::Int, path::String)
     app
 end
 route(a::App, m::Int, p::String, h::Function) = route(h, a, m, p)
+
+get(h::Function, a::App, p::String)    = route(h, a, GET, p)
+post(h::Function, a::App, p::String)   = route(h, a, POST, p)
+put(h::Function, a::App, p::String)    = route(h, a, PUT, p)
+update(h::Function, a::App, p::String) = route(h, a, UPDATE, p)
+delete(h::Function, a::App, p::String) = route(h, a, DELETE, p)
 
 function prepare_response(s::String, req::Request, res::Response)
     res.data = s
