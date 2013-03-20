@@ -1,11 +1,4 @@
-module Routes
-
-require("Micro/src/Trees.jl")
-using Trees
-
-export RoutingTable, 
-       register!,
-       match_route_handler
+include("Trees.jl")
 
 abstract RouteNode
 
@@ -48,14 +41,12 @@ function searchroute(route)
                 route = route[2:end]; false
             end
         else
-            Trees.PRUNE
+            PRUNE
         end
     end
 end
 
-function match_route_handler(table::RoutingTable, parts::Array) 
+function match_route_handler(table::RoutingTable, parts::Array)
     result = search(table, searchroute(parts))
     result != nothing ? result[2] : nothing
 end
-
-end # module Routes

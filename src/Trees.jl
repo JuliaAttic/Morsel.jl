@@ -1,9 +1,3 @@
-module Trees
-
-export Tree, 
-       insert!, 
-       search
-
 type Tree
     value::Any
     children::Array{Tree,1}
@@ -63,5 +57,3 @@ function search(tree::Tree, pred::Function)
         nothing
     end
 end
-
-end # module Trees
