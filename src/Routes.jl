@@ -6,11 +6,14 @@ immutable StringNode <: RouteNode
     val::String
 end
 isequal(s1::StringNode, s2::String) = s1.val == s2
+isequal(s1::StringNode, s2::StringNode) = s1.val == s2.val
 ismatch(s1::StringNode, s2::String) = s1.val == s2
 
 typealias Route (RouteNode,Union(Function,Nothing)) # ('/about', function()...)
 isequal(r::Route, v) = isequal(r[1], v)
 ismatch(r::Route, v) = ismatch(r[1], v)
+
+isequal(node::RouteNode, route::Route) = isequal(node, route[1])
 
 typealias RoutingTable Tree
 RoutingTable() = RoutingTable((StringNode("/"), nothing))
