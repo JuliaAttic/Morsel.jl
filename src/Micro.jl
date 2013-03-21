@@ -18,6 +18,7 @@ export GET,
        update,
        delete,
        start,
+       url_params,
 
        # from Routes
        match_route_handler
@@ -59,6 +60,10 @@ post(h::Function, a::App, p::String)   = route(h, a, POST, p)
 put(h::Function, a::App, p::String)    = route(h, a, PUT, p)
 update(h::Function, a::App, p::String) = route(h, a, UPDATE, p)
 delete(h::Function, a::App, p::String) = route(h, a, DELETE, p)
+
+url_params(req::Request)                       = req.state[:url_params]
+url_params(req::Request, key::String, default) = get(req.state[:url_params], key, default)
+url_params(req::Request, key::String)          = url_params(req, key, nothing)
 
 function prepare_response(s::String, req::Request, res::Response)
     res.data = s
