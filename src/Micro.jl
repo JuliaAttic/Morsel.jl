@@ -2,7 +2,6 @@ module Micro
 
 using Http,
       Meddle
-
 export GET,
        POST,
        PUT,
