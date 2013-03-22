@@ -21,18 +21,23 @@ RoutingTable() = RoutingTable((StringNode("/"), nothing))
 ismatch(node::String, resource_chunk::String) = node == resource_chunk
 
 function parse_part(part::String)
-    StringNode(part)
+    StringNode(part != "" ? part : "/")
 end
 
 function path_to_handler(route::String, handler::Function)
-    # TODO: handle "/" root route
     path = Route[(parse_part(part),nothing) for part in split(strip(route, "/"), "/")]
     path[end] = (path[end][1], handler)
     path
 end
 
 function register!(table::RoutingTable, resource::String, handler::Function)
-    insert!(table, path_to_handler(resource, handler))
+    path = path_to_handler(resource, handler)
+    # NOTE: a bit hack-ey, but fixes the root routing problem
+    if resource == "/" 
+        table.value = path[1]
+    else
+        insert!(table, path)
+    end
 end
 
 function searchroute(route)
