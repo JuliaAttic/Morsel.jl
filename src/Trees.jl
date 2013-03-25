@@ -1,3 +1,4 @@
+# Tree data type used for a routing tree.
 type Tree
     value::Any
     children::Array{Tree,1}

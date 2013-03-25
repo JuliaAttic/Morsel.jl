@@ -37,7 +37,10 @@ const HEAD    = 2^6
 
 HttpMethods = HttpMethod[GET, POST, PUT, UPDATE, DELETE, OPTIONS, HEAD]
 
-routing_tables() = (HttpMethod => RoutingTable)[method => RoutingTable() for method in HttpMethods]
+# The produces a dictionary that maps each type of request (GET, POST, etc.) to
+# a RoutingTable, which is an alias to the Tree datatype specified in Trees.jl.
+routing_tables() = (HttpMethod => RoutingTable)[method => RoutingTable()
+                                                for method in HttpMethods]
 
 type App
     routes::Dict{HttpMethod, RoutingTable}
@@ -46,7 +49,20 @@ function app()
     App(routing_tables())
 end
 
-# define new routes
+# This defines a route and adds it to the routes dictionary. As HTTP methods
+# are bitmasked integers they can be combined using the bitwise or opperator,
+# e.g. "GET | POST" will add a GET method and a POST method.
+#
+# Example:
+#   function hello_world(req, res)
+#       "Hello, world!"
+#   end
+#   route(hello_world, GET | POST, "/hello/world")
+#
+# Or using do syntax:
+#   route(app, GET | POST, "/hello/world") do req, res
+#       "Hello, world"
+#   end
 function route(handler::Function, app::App, methods::Int, path::String)
     for method in HttpMethods
         methods & method == method && register!(app.routes[method], path, handler)
