@@ -40,13 +40,36 @@ function register!(table::RoutingTable, resource::String, handler::Function)
     end
 end
 
-function searchroute(route)
+# It is easiest to understand the behavior of `searchroute` by example.
+# When passed an array of url/resource components, e.g. for "/hello/world" the
+# array `["hello", "world"], `searchroute` returns a function, `searchpred` that
+# takes a single argument.
+#
+# When passed matching components `searchpred` returns `false` until the final
+# element of `paths` is matched, e.g.:
+#
+#   > searchpred = searchroute(["hello", "world"])
+#   > searchpred("hello")
+#   false
+#   > searchpred("world")
+#   true
+#
+# However if a non-matching component is passed to `search` it returns `PRUNE`:
+#
+#   > searchpred = searchroute(["hello", "world"])
+#   > searchpred("goodbye")
+#   PRUNE
+#
+# This is used to indicate that it is not neccessary to continue searching a
+# given branch of the `RoutingTable`.
+#
+function searchroute(parts::Array)
     function searchpred(val)
-        if ismatch(val, route[1])
-            if length(route) == 1
+        if ismatch(val, parts[1])
+            if length(parts) == 1
                 true
             else
-                route = route[2:end]; false
+                parts = parts[2:end]; false
             end
         else
             PRUNE
