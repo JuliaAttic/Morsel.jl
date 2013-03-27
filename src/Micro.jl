@@ -1,15 +1,10 @@
 module Micro
 
 using Http,
+      Httplib,
       Meddle
-export GET,
-       POST,
-       PUT,
-       UPDATE,
-       DELETE,
-       OPTIONS,
-       HEAD,
-       App,
+
+export App,
        app,
        route,
        get,
@@ -20,30 +15,26 @@ export GET,
        start,
        url_params,
 
+       # from Httplib
+       GET,
+       POST,
+       PUT,
+       UPDATE,
+       DELETE,
+       OPTIONS,
+       HEAD,
+
        # from Routes
        match_route_handler
 
 include("Routes.jl")
 
-# HTTP method bitmask, allows fancy GET | POST | UPDATE style API.
-typealias HttpMethod Int
-const GET     = 2^0
-const POST    = 2^1
-const PUT     = 2^2
-const UPDATE  = 2^3
-const DELETE  = 2^4
-const OPTIONS = 2^5
-const HEAD    = 2^6
-
-HttpMethods = HttpMethod[GET, POST, PUT, UPDATE, DELETE, OPTIONS, HEAD]
-
 # The produces a dictionary that maps each type of request (GET, POST, etc.) to
 # a RoutingTable, which is an alias to the Tree datatype specified in Trees.jl.
-routing_tables() = (HttpMethod => RoutingTable)[method => RoutingTable()
-                                                for method in HttpMethods]
+routing_tables() = (HttpMethodBitmask => RoutingTable)[method => RoutingTable() for method in HttpMethodBitmasks]
 
 type App
-    routes::Dict{HttpMethod, RoutingTable}
+    routes::Dict{HttpMethodBitmask, RoutingTable}
 end
 function app()
     App(routing_tables())
@@ -64,7 +55,7 @@ end
 #       "Hello, world"
 #   end
 function route(handler::Function, app::App, methods::Int, path::String)
-    for method in HttpMethods
+    for method in HttpMethodBitmasks
         methods & method == method && register!(app.routes[method], path, handler)
     end
     app
@@ -90,7 +81,7 @@ function start(app::App, port::Int)
 
     MicroApp = Midware() do req::Request, res::Response
         path = vcat(["/"], split(rstrip(req.resource,"/"),"/")[2:end])
-        handler = match_route_handler(app.routes[GET], path)
+        handler = match_route_handler(app.routes[HttpMethodNameToBitmask[req.method]], path)
         if handler != nothing
            return prepare_response(handler(req, res), req, res)
         end
