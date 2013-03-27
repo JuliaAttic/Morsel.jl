@@ -14,6 +14,7 @@ export App,
        delete,
        start,
        url_params,
+       route_params,
 
        # from Httplib
        GET,
@@ -71,6 +72,8 @@ function route(handler::Function, app::App, methods::Int, path::String)
 end
 route(a::App, m::Int, p::String, h::Function) = route(h, a, m, p)
 
+import Base.get
+
 # These are shortcut functions for common calls to `route`.
 # e.g `get` calls `route` with a `GET` as the method parameter.
 #
@@ -80,9 +83,16 @@ put(h::Function, a::App, p::String)    = route(h, a, PUT, p)
 update(h::Function, a::App, p::String) = route(h, a, UPDATE, p)
 delete(h::Function, a::App, p::String) = route(h, a, DELETE, p)
 
+# Convenience methods for getting url parameters from req.state[:url_params]
+#
 url_params(req::Request)                       = req.state[:url_params]
 url_params(req::Request, key::String, default) = get(req.state[:url_params], key, default)
 url_params(req::Request, key::String)          = url_params(req, key, nothing)
+
+# Convenience methods for getting route parameters from req.state[:route_params]
+#
+route_params(req::Request)                     = get(req.state, :route_params, nothing)
+route_params(req::Request, key::Symbol)        = has(req.state, :route_params) ? get(req.state[:route_params], key, nothing) : nothing
 
 # `prepare_response` simply sets the data field of the `Response` to the input
 # string `s` and calls the middleware's `repsond` function.
@@ -102,7 +112,8 @@ function start(app::App, port::Int)
 
     MicroApp = Midware() do req::Request, res::Response
         path = vcat(["/"], split(rstrip(req.resource,"/"),"/")[2:end])
-        handler = match_route_handler(app.routes[HttpMethodNameToBitmask[req.method]], path)
+        methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.method]]
+        handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
         if handler != nothing
            return prepare_response(handler(req, res), req, res)
         end
