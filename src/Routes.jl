@@ -1,18 +1,32 @@
 include("Trees.jl")
 
+typealias Params Dict{Any,Any}
+
 abstract RouteNode
+getparams(params::Params, v::RouteNode, p::String) = params
 
 immutable StringNode <: RouteNode
     val::String
 end
 isequal(s1::StringNode, s2::String) = s1.val == s2
 isequal(s1::StringNode, s2::StringNode) = s1.val == s2.val
-ismatch(s1::StringNode, s2::String) = s1.val == s2
+ismatch(s1::StringNode, s2::String) = isequal(s1, s2)
+
+immutable RegexNode <: RouteNode
+    name::String
+    regex::Regex
+end
+RegexNode(p::String) = RegexNode(match(r"<([^:]*)::", p).captures[1], 
+                                 Regex("^$(match(r":%([^>]*)>", p).captures[1])\$"))
+
+isequal(s1::RegexNode, s2::String)    = Base.ismatch( s1.regex, s2 )
+isequal(s1::RegexNode, s2::RegexNode) = isequal( s1.regex.pattern, s2.regex.pattern ) && isequal( s1.name, s2.name)
+ismatch(s1::RegexNode, s2::String)    = isequal( s1, s2 )
+getparams(params::Params, v::RegexNode, p::String) = params[symbol(v.name)] = p
 
 typealias Route (RouteNode,Union(Function,Nothing)) # ('/about', function()...)
 isequal(r::Route, v) = isequal(r[1], v)
 ismatch(r::Route, v) = ismatch(r[1], v)
-
 isequal(node::RouteNode, route::Route) = isequal(node, route[1])
 
 typealias RoutingTable Tree
@@ -21,7 +35,7 @@ RoutingTable() = RoutingTable((StringNode("/"), nothing))
 ismatch(node::String, resource_chunk::String) = node == resource_chunk
 
 function parse_part(part::String)
-    StringNode(part != "" ? part : "/")
+    Base.ismatch(r"<[^>]*>", part) && Base.ismatch(r"<[^:%]*::%", part) ? RegexNode(part) : StringNode(part != "" ? part : "/")
 end
 
 # `path_to_handler` returns an array of `(RouteNode,Union(Nothing,Function))`
@@ -78,9 +92,10 @@ end
 # This is used to indicate that it is not neccessary to continue searching a
 # given branch of the `RoutingTable`.
 #
-function searchroute(parts::Array)
+function searchroute(parts::Array, params::Params)
     function searchpred(val)
         if ismatch(val, parts[1])
+            params = getparams(params, val[1], parts[1])
             if length(parts) == 1
                 true
             else
@@ -97,6 +112,7 @@ end
 # no match is found then it returns `nothing`.
 #
 function match_route_handler(table::RoutingTable, parts::Array)
-    result = search(table, searchroute(parts))
-    result != nothing ? result[2] : nothing
+    params = Params()
+    result = search(table, searchroute(parts, params))
+    ((result != nothing ? result[2] : nothing), params)
 end
