@@ -24,12 +24,27 @@ function parse_part(part::String)
     StringNode(part != "" ? part : "/")
 end
 
+# `path_to_handler` returns an array of `(RouteNode,Union(Nothing,Function))`
+# pairs. Each element will hold a `nothing` except for the final element which
+# will contain the handler function. e.g.:
+#
+#   path_to_handler("/hello/world", ()->"")
+#
+# returns:
+#
+#   (StringNode("hello"),nothing)
+#   (StringNode("world"),# function)
+#
 function path_to_handler(route::String, handler::Function)
     path = Route[(parse_part(part),nothing) for part in split(strip(route, "/"), "/")]
     path[end] = (path[end][1], handler)
     path
 end
 
+# `register!` inserts a handler into a `RoutingTable`. If it is for the root
+# resource, "/", then it overwrites the route node rather than inserting a new
+# one.
+#
 function register!(table::RoutingTable, resource::String, handler::Function)
     path = path_to_handler(resource, handler)
     # NOTE: a bit hack-ey, but fixes the root routing problem
@@ -77,6 +92,10 @@ function searchroute(parts::Array)
     end
 end
 
+# `match_route_handler` looks up a handler in `table` when given a route to a
+# resource array form (e.g. "/hello/world" would be `["hello", "world"]`). If
+# no match is found then it returns `nothing`.
+#
 function match_route_handler(table::RoutingTable, parts::Array)
     result = search(table, searchroute(parts))
     result != nothing ? result[2] : nothing
