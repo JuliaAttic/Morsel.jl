@@ -112,8 +112,8 @@ function start(app::App, port::Int)
 
     MicroApp = Midware() do req::Request, res::Response
         path = vcat(["/"], split(rstrip(req.resource,"/"),"/")[2:end])
-        routeTable = app.routes[HttpMethodNameToBitmask[req.method]]
-        handler, req.state[:route_params] = match_route_handler(routeTable, path)
+        methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.method]]
+        handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
         if handler != nothing
            return prepare_response(handler(req, res), req, res)
         end

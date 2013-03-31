@@ -8,21 +8,30 @@ getparams(params::Params, v::RouteNode, p::String) = params
 immutable StringNode <: RouteNode
     val::String
 end
-isequal(s1::StringNode, s2::String) = s1.val == s2
+isequal(s1::StringNode, s2::String)     = s1.val == s2
 isequal(s1::StringNode, s2::StringNode) = s1.val == s2.val
-ismatch(s1::StringNode, s2::String) = isequal(s1, s2)
+ismatch(s1::StringNode, s2::String)     = isequal(s1, s2)
 
-immutable RegexNode <: RouteNode
+getname(p::String) = Base.ismatch(r"^<([^\:]*)::", p) ? match(r"^<([^\:]*)::", p).captures[1] : nothing
+
+immutable DynamicNode <: RouteNode
     name::String
     regex::Regex
+    convert::Union(Nothing, Function)
 end
-RegexNode(p::String) = RegexNode(match(r"<([^:]*)::", p).captures[1], 
-                                 Regex("^$(match(r":%([^>]*)>", p).captures[1])\$"))
+DynamicNode(n::String, r::Regex)    = DynamicNode(n,r,nothing)
+DynamicNode(p::String, c::Function) = DynamicNode(getname(p), Regex("^$(match(r":%([^>]*)>", p).captures[1])\$"), c)
 
-isequal(s1::RegexNode, s2::String)    = Base.ismatch( s1.regex, s2 )
-isequal(s1::RegexNode, s2::RegexNode) = isequal( s1.regex.pattern, s2.regex.pattern ) && isequal( s1.name, s2.name)
-ismatch(s1::RegexNode, s2::String)    = isequal( s1, s2 )
-getparams(params::Params, v::RegexNode, p::String) = params[symbol(v.name)] = p
+RegexNode(p::String) = DynamicNode(getname(p), Regex("^$(match(r":%([^>]*)>", p).captures[1])\$"))
+NamedParamNode(p::String) = DynamicNode(p[2:length(p)-1], r".*")
+ConverterNode(p::String, f::Function) = DynamicNode(getname(p), r".*", f)
+const DataTypeNodeBuilders = (DataType => (Regex, Function))[ Int => (r"^[0-9]*$", int) ]
+DataTypeNode(p::String, t::DataType) = DynamicNode(getname(p), DataTypeNodeBuilders[t]...)
+
+isequal(s1::DynamicNode, s2::String)    = Base.ismatch( s1.regex, s2 )
+isequal(s1::DynamicNode, s2::DynamicNode) = isequal( s1.regex.pattern, s2.regex.pattern ) && isequal( s1.name, s2.name)
+ismatch(s1::DynamicNode, s2::String)    = isequal( s1, s2 )
+getparams(params::Params, v::DynamicNode, p::String) = params[symbol(v.name)] = v.convert == nothing ? p : v.convert(p)
 
 typealias Route (RouteNode,Union(Function,Nothing)) # ('/about', function()...)
 isequal(r::Route, v) = isequal(r[1], v)
@@ -34,8 +43,35 @@ RoutingTable() = RoutingTable((StringNode("/"), nothing))
 
 ismatch(node::String, resource_chunk::String) = node == resource_chunk
 
+function data_or_converter_node(part::String)
+    m = match(node_type_dispatch[:data_or_converter][1], part)
+    sym = symbol(m.captures[1])
+    if !isdefined(sym)
+        throw("$sym was undefined, expected DataType or Function")
+    end
+    v = eval(sym)
+    if isa(v, DataType)
+        return has(DataTypeNodeBuilders, v) ? DataTypeNode(part, v) : throw("Unknown DataType: $v in route: $part")
+    end
+    isa(v, Function) ? ConverterNode(part, v) : throw("Invalid dynamic route expression: $part, expected DataType or Function")
+end
+
+const node_type_dispatch = (Symbol => (Regex, Function) )[
+    :regex             => (r"^<[^:%]*::%",         RegexNode),
+    :data_or_converter => (r"^<[^:>]*::([^%>]*)>$", data_or_converter_node),
+    :named             => (r"^<[^:>]*>$",          NamedParamNode)
+]
+
 function parse_part(part::String)
-    Base.ismatch(r"<[^>]*>", part) && Base.ismatch(r"<[^:%]*::%", part) ? RegexNode(part) : StringNode(part != "" ? part : "/")
+    if length(part) > 0 && Base.ismatch(r"^<[^>]*>$", part) 
+        for v in node_type_dispatch
+            if Base.ismatch(v[2][1], part)
+                return v[2][2](part)
+            end
+        end
+        throw("$part is an invalid route part.")
+    end
+    StringNode(part != "" ? part : "/")
 end
 
 # `path_to_handler` returns an array of `(RouteNode,Union(Nothing,Function))`
