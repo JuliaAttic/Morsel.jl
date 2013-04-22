@@ -27,7 +27,6 @@ function insert!(tree::Tree, values::Array)
         tree
     elseif ischild(values[1], tree)
         t = getchild(tree, values[1])
-        t.value = values[1]
         insert!(t, values[2:end])
     else
         t = Tree(values[1])
