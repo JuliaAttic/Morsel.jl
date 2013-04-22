@@ -7,6 +7,7 @@ using HttpServer,
 export App,
        app,
        route,
+       namespace,
        get,
        post,
        put,
@@ -42,9 +43,10 @@ routing_tables() = (HttpMethodBitmask => RoutingTable)[method => RoutingTable()
 #
 type App
     routes::Dict{HttpMethodBitmask, RoutingTable}
+    state::Dict{Any,Any}
 end
 function app()
-    App(routing_tables())
+    App(routing_tables(), Dict{Any,Any}())
 end
 
 # This defines a route and adds it to the `app.routes` dictionary. As HTTP
@@ -65,12 +67,21 @@ end
 #   end
 #
 function route(handler::Function, app::App, methods::Int, path::String)
+    prefix = get(app.state, :routeprefix, "")
     for method in HttpMethodBitmasks
-        methods & method == method && register!(app.routes[method], path, handler)
+        methods & method == method && register!(app.routes[method], prefix * path, handler)
     end
     app
 end
 route(a::App, m::Int, p::String, h::Function) = route(h, a, m, p)
+
+function namespace(thunk::Function, app::App, prefix::String)
+  beforeprefix = get(app.state, :routeprefix, "")
+  app.state[:routeprefix] = beforeprefix * prefix
+  thunk(app)
+  app.state[:routeprefix] = beforeprefix
+  app
+end
 
 import Base.get
 
