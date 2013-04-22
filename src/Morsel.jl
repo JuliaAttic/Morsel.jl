@@ -1,4 +1,4 @@
-module Micro
+module Morsel
 
 using HttpServer,
       Httplib,
@@ -110,7 +110,7 @@ end
 #
 function start(app::App, port::Int)
 
-    MicroApp = Midware() do req::Request, res::Response
+    MorselApp = Midware() do req::Request, res::Response
         path = vcat(["/"], split(rstrip(req.resource,"/"),"/")[2:end])
         methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.method]]
         handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
@@ -120,12 +120,12 @@ function start(app::App, port::Int)
         respond(req, Response(404))
     end
 
-    stack = middleware(DefaultHeaders, CookieDecoder, MicroApp)
+    stack = middleware(InputEncoder, DefaultHeaders, CookieDecoder, MorselApp)
     http = HttpHandler((req, res) -> Meddle.handle(stack, req, res))
-    http.events["listen"] = (port) -> println("Micro is listening on $port...")
+    http.events["listen"] = (port) -> println("Morsel is listening on $port...")
 
     server = Server(http)
     run(server, port)
 end
 
-end # module Micro
+end # module Morsel

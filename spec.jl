@@ -1,6 +1,6 @@
-using Micro
+using Morsel
 
-app = Micro.app()
+app = Morsel.app()
 
 # Route with HTTP verbs
 get(app, "/") do req, res
@@ -35,7 +35,7 @@ end
 route(app, POST, "/upload", handleImageUpload)
 
 # Route middleware
-auth = Micro.Midware() do req, res
+auth = Morsel.Midware() do req, res
     if !get(session(req), :authenticated, false)
         return req, redirect("/login")
     end
