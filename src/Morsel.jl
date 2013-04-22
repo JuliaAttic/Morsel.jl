@@ -131,7 +131,7 @@ function start(app::App, port::Int)
         respond(req, Response(404))
     end
 
-    stack = middleware(InputEncoder, DefaultHeaders, CookieDecoder, MorselApp)
+    stack = middleware(DefaultHeaders, CookieDecoder, MorselApp)
     http = HttpHandler((req, res) -> Meddle.handle(stack, req, res))
     http.events["listen"] = (port) -> println("Morsel is listening on $port...")
 
