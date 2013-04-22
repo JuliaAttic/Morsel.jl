@@ -8,6 +8,7 @@ export App,
        app,
        route,
        namespace,
+       with,
        get,
        post,
        put,
@@ -67,21 +68,43 @@ end
 #   end
 #
 function route(handler::Function, app::App, methods::Int, path::String)
-    prefix = get(app.state, :routeprefix, "")
+    prefix    = get(app.state, :routeprefix, "")
+    withstack = get(app.state, :withstack, Midware[])
+    handle    = handler
+    if length(withstack) > 0
+        stack  = middleware(withstack..., Midware( (req::Request, res::Response) -> prepare_response(handler(req, res), req, res) ))
+        handle = (req::Request, res::Response) -> Meddle.handle(stack, req, res)
+    end
     for method in HttpMethodBitmasks
-        methods & method == method && register!(app.routes[method], prefix * path, handler)
+        methods & method == method && register!(app.routes[method], prefix * path, handle)
     end
     app
 end
 route(a::App, m::Int, p::String, h::Function) = route(h, a, m, p)
 
 function namespace(thunk::Function, app::App, prefix::String)
-  beforeprefix = get(app.state, :routeprefix, "")
-  app.state[:routeprefix] = beforeprefix * prefix
-  thunk(app)
-  app.state[:routeprefix] = beforeprefix
-  app
+    beforeprefix = get(app.state, :routeprefix, "")
+    app.state[:routeprefix] = beforeprefix * prefix
+    thunk(app)
+    app.state[:routeprefix] = beforeprefix
+    app
 end
+
+namespace(thunk::Function, app::App, prefix::String, mid::Union(Midware,MidwareStack)...) = with((app) -> namespace(thunk, app, prefix), app, mid...)
+
+function with(thunk::Function, app::App, stack::MidwareStack)
+    withstack = get(app.state, :withstack, Midware[])
+    beforelen = length(withstack)
+    for mid in stack
+      push!(withstack, mid)
+    end
+    app.state[:withstack] = withstack
+    thunk(app)
+    app.state[:withstack] = withstack[1:beforelen]
+    app
+end
+
+with(thunk::Function, app::App, mid::Midware...) = with(thunk, app, middleware(mid...))
 
 import Base.get
 
@@ -112,6 +135,7 @@ function prepare_response(s::String, req::Request, res::Response)
     res.data = s
     respond(req, res)
 end
+prepare_response(r::Response, req::Request, res::Response) = respond(req, r)
 
 # `start` uses to `Http.jl` and `Meddle.jl` libraries to launch a webserver
 # running `app` on the desired `port`.
