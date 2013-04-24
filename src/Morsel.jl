@@ -15,8 +15,10 @@ export App,
        update,
        delete,
        start,
-       url_params,
-       route_params,
+       urlparam,
+       routeparam,
+       param,
+       unsafestring,
 
        # from Httplib
        GET,
@@ -117,16 +119,35 @@ put(h::Function, a::App, p::String)    = route(h, a, PUT, p)
 update(h::Function, a::App, p::String) = route(h, a, UPDATE, p)
 delete(h::Function, a::App, p::String) = route(h, a, DELETE, p)
 
-# Convenience methods for getting url parameters from req.state[:url_params]
-#
-url_params(req::Request)                       = req.state[:url_params]
-url_params(req::Request, key::String, default) = get(req.state[:url_params], key, default)
-url_params(req::Request, key::String)          = url_params(req, key, nothing)
+function sanitize(input::String)
+    replace(input,r"</?[^>]*>|</?|>","")
+end
 
-# Convenience methods for getting route parameters from req.state[:route_params]
+function validatedvalue(value::Any, validator::Function)
+    value == nothing && return nothing
+    if validator == string
+        value = sanitize(value)
+    end
+    validator(value)
+end
+
+function safelyaccess(req::Request, stateKey::Symbol, valKey::Any, validator::Function)
+   has(req.state, stateKey) ? validatedvalue(get(req.state[stateKey], valKey, nothing), validator) : nothing
+end
+
+# validator for getting unsafe ( raw ) input
 #
-route_params(req::Request)                     = get(req.state, :route_params, nothing)
-route_params(req::Request, key::Symbol)        = has(req.state, :route_params) ? get(req.state[:route_params], key, nothing) : nothing
+unsafestring = (input::String) -> input
+
+# Safe accessors for URL parameters, route parameters and POST data
+#
+urlparam(req::Request, key::String, validator::Function)   = @show safelyaccess(req, :url_params, key, validator)
+routeparam(req::Request, key::String, validator::Function) = @show safelyaccess(req, :route_params, key, validator)
+param(req::Request, key::String, validator::Function)      = @show safelyaccess(req, :data, key, validator)
+# support symbols...
+urlparam(req::Request, key::Symbol, validator::Function)   = urlparam(req, string(key), validator)
+routeparam(req::Request, key::Symbol, validator::Function) = routeparam(req, string(key), validator)
+param(req::Request, key::Symbol, validator::Function)      = param(req, string(key), validator)
 
 # `prepare_response` simply sets the data field of the `Response` to the input
 # string `s` and calls the middleware's `repsond` function.
@@ -155,7 +176,7 @@ function start(app::App, port::Int)
         respond(req, Response(404))
     end
 
-    stack = middleware(DefaultHeaders, CookieDecoder, MorselApp)
+    stack = middleware(DefaultHeaders, URLDecoder, CookieDecoder, BodyDecoder, MorselApp)
     http = HttpHandler((req, res) -> Meddle.handle(stack, req, res))
     http.events["listen"] = (port) -> println("Morsel is listening on $port...")
 
