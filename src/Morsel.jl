@@ -1,7 +1,7 @@
 module Morsel
 
 using HttpServer,
-      Httplib,
+      HttpCommon,
       Meddle
 
 export App,
@@ -20,7 +20,7 @@ export App,
        param,
        unsafestring,
 
-       # from Httplib
+       # from HttpCommon
        GET,
        POST,
        PUT,
