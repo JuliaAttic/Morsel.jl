@@ -1,5 +1,16 @@
+##Morsel
+
 Morsel is a Sintra-like micro framework for declaring routes and handling requests.
-It is built on top of `Http.jl` and `Meddle.jl`.
+It is built on top of [HttpServer.jl](https://github.com/hackerschool/HttpServer.jl)
+and [Meddle.jl](https://github.com/hackerschool/Meddle.jl).
+
+## Installation
+
+Morsel is a Julia package, so just run `Pkg.add("Morsel")` in the repl.
+You will also need to install Joyent's HTTP parsing library;
+see [HttpParser's README](https://github.com/hackerschool/HttpParser.jl).
+
+## Example
 
 Here is a brief example that will return a few different messages for different routes,
 if you run this and open `localhost:8000` you will see "This is the root" for GET, POST or PUT requests.
