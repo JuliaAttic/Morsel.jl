@@ -167,7 +167,7 @@ prepare_response(r::Response, req::Request, res::Response) = respond(req, r)
 function start(app::App, port::Int)
 
     MorselApp = Midware() do req::Request, res::Response
-        path = vcat(["/"], split(rstrip(req.resource,"/"),"/")[2:end])
+        path = vcat(["/"], split(rstrip(req.resource,collect("/")),"/")[2:end])
         methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.method]]
         handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
         if handler != nothing
