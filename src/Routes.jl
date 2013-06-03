@@ -115,7 +115,7 @@ end
 #   (StringNode("world"),# function)
 #
 function path_to_handler(route::String, handler::Function)
-    path = Route[(parse_part(part),nothing) for part in split(strip(route, "/"), "/")]
+    path = Route[(parse_part(part),nothing) for part in split(strip(route, collect("/")), "/")]
     path[end] = (path[end][1], handler)
     path
 end
