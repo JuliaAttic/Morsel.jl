@@ -74,8 +74,8 @@ function route(handler::Function, app::App, methods::Int, path::String)
     withstack = get(app.state, :withstack, Midware[])
     handle    = handler
     if length(withstack) > 0
-        stack  = middleware(withstack..., Midware( (req::Request, res::Response) -> prepare_response(handler(req, res), req, res) ))
-        handle = (req::Request, res::Response) -> Meddle.handle(stack, req, res)
+        stack  = middleware(withstack..., Midware( (req::MeddleRequest, res::Response) -> prepare_response(handler(req, res), req, res) ))
+        handle = (req::MeddleRequest, res::Response) -> Meddle.handle(stack, req, res)
     end
     for method in HttpMethodBitmasks
         methods & method == method && register!(app.routes[method], prefix * path, handle)
@@ -131,8 +131,8 @@ function validatedvalue(value::Any, validator::Function)
     validator(value)
 end
 
-function safelyaccess(req::Request, stateKey::Symbol, valKey::Any, validator::Function)
-   has(req.state, stateKey) ? validatedvalue(get(req.state[stateKey], valKey, nothing), validator) : nothing
+function safelyaccess(req::MeddleRequest, stateKey::Symbol, valKey::Any, validator::Function)
+   haskey(req.state, stateKey) ? validatedvalue(get(req.state[stateKey], valKey, nothing), validator) : nothing
 end
 
 # validator for getting unsafe ( raw ) input
@@ -141,22 +141,22 @@ unsafestring = (input::String) -> input
 
 # Safe accessors for URL parameters, route parameters and POST data
 #
-urlparam(req::Request, key::String, validator::Function)   = @show safelyaccess(req, :url_params, key, validator)
-routeparam(req::Request, key::String, validator::Function) = @show safelyaccess(req, :route_params, key, validator)
-param(req::Request, key::String, validator::Function)      = @show safelyaccess(req, :data, key, validator)
+urlparam(req::MeddleRequest, key::String, validator::Function)   = @show safelyaccess(req, :url_params, key, validator)
+routeparam(req::MeddleRequest, key::String, validator::Function) = @show safelyaccess(req, :route_params, key, validator)
+param(req::MeddleRequest, key::String, validator::Function)      = @show safelyaccess(req, :data, key, validator)
 # support symbols...
-urlparam(req::Request, key::Symbol, validator::Function)   = urlparam(req, string(key), validator)
-routeparam(req::Request, key::Symbol, validator::Function) = routeparam(req, string(key), validator)
-param(req::Request, key::Symbol, validator::Function)      = param(req, string(key), validator)
+urlparam(req::MeddleRequest, key::Symbol, validator::Function)   = urlparam(req, string(key), validator)
+routeparam(req::MeddleRequest, key::Symbol, validator::Function) = routeparam(req, string(key), validator)
+param(req::MeddleRequest, key::Symbol, validator::Function)      = param(req, string(key), validator)
 
 # `prepare_response` simply sets the data field of the `Response` to the input
 # string `s` and calls the middleware's `repsond` function.
 #
-function prepare_response(s::String, req::Request, res::Response)
+function prepare_response(s::String, req::MeddleRequest, res::Response)
     res.data = s
     respond(req, res)
 end
-prepare_response(r::Response, req::Request, res::Response) = respond(req, r)
+prepare_response(r::Response, req::MeddleRequest, res::Response) = respond(req, r)
 
 # `start` uses to `Http.jl` and `Meddle.jl` libraries to launch a webserver
 # running `app` on the desired `port`.
@@ -166,9 +166,9 @@ prepare_response(r::Response, req::Request, res::Response) = respond(req, r)
 #
 function start(app::App, port::Int)
 
-    MorselApp = Midware() do req::Request, res::Response
-        path = vcat(["/"], split(rstrip(req.resource,collect("/")),"/")[2:end])
-        methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.method]]
+    MorselApp = Midware() do req::MeddleRequest, res::Response
+        path = vcat(["/"], split(rstrip(req.http_req.resource,'/'),'/')[2:end])
+        methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.http_req.method]]
         handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
         if handler != nothing
            return prepare_response(handler(req, res), req, res)
@@ -177,7 +177,7 @@ function start(app::App, port::Int)
     end
 
     stack = middleware(DefaultHeaders, URLDecoder, CookieDecoder, BodyDecoder, MorselApp)
-    http = HttpHandler((req, res) -> Meddle.handle(stack, req, res))
+    http = HttpHandler((req, res) -> Meddle.handle(stack, MeddleRequest(req,Dict{Symbol,Any}()), res))
     http.events["listen"] = (port) -> println("Morsel is listening on $port...")
 
     server = Server(http)
