@@ -6,9 +6,13 @@ and [Meddle.jl](https://github.com/hackerschool/Meddle.jl).
 
 ## Installation
 
-Morsel is a Julia package, so just run `Pkg.add("Morsel")` in the repl.
-You will also need to install Joyent's HTTP parsing library;
-see [HttpParser's README](https://github.com/hackerschool/HttpParser.jl).
+```jl
+# in REQUIRE
+Morsel 0.0.1
+
+# in REPL
+julia> Pkg2.add("Morsel")
+```
 
 ## Example
 
