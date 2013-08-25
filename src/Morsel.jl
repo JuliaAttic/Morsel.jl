@@ -137,17 +137,29 @@ end
 
 # validator for getting unsafe ( raw ) input
 #
-unsafestring = (input::String) -> input
+unsafestring(input::String) = input
 
 # Safe accessors for URL parameters, route parameters and POST data
 #
-urlparam(req::MeddleRequest, key::String, validator::Function)   = @show safelyaccess(req, :url_params, key, validator)
-routeparam(req::MeddleRequest, key::String, validator::Function) = @show safelyaccess(req, :route_params, key, validator)
-param(req::MeddleRequest, key::String, validator::Function)      = @show safelyaccess(req, :data, key, validator)
+function urlparam(req::MeddleRequest, key::String, validator::Function=string)
+    safelyaccess(req, :url_params, key, validator)
+end
+function routeparam(req::MeddleRequest, key::String, validator::Function=string)
+    safelyaccess(req, :route_params, key, validator)
+end
+function param(req::MeddleRequest, key::String, validator::Function=string)
+    safelyaccess(req, :data, key, validator)
+end
 # support symbols...
-urlparam(req::MeddleRequest, key::Symbol, validator::Function)   = urlparam(req, string(key), validator)
-routeparam(req::MeddleRequest, key::Symbol, validator::Function) = routeparam(req, string(key), validator)
-param(req::MeddleRequest, key::Symbol, validator::Function)      = param(req, string(key), validator)
+function urlparam(req::MeddleRequest, key::Symbol, validator::Function=string)
+    urlparam(req, string(key), validator)
+end
+function routeparam(req::MeddleRequest, key::Symbol, validator::Function=string)
+    routeparam(req, string(key), validator)
+end
+function param(req::MeddleRequest, key::Symbol, validator::Function=string)
+    param(req, string(key), validator)
+end
 
 # `prepare_response` simply sets the data field of the `Response` to the input
 # string `s` and calls the middleware's `repsond` function.
