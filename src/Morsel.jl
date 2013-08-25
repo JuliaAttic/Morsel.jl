@@ -164,8 +164,17 @@ end
 # `prepare_response` simply sets the data field of the `Response` to the input
 # string `s` and calls the middleware's `repsond` function.
 #
-function prepare_response(s::String, req::MeddleRequest, res::Response)
-    res.data = s
+function prepare_response(data::String, req::MeddleRequest, res::Response)
+    res.data = data
+    respond(req, res)
+end
+function prepare_response(status::Int, req::MeddleRequest, res::Response)
+    res.status = status
+    respond(req, res)
+end
+function prepare_response(data::(Int, String), req::MeddleRequest, res::Response)
+    res.status = data[1]
+    res.data = data[2]
     respond(req, res)
 end
 prepare_response(r::Response, req::MeddleRequest, res::Response) = respond(req, r)
@@ -183,7 +192,7 @@ function start(app::App, port::Int)
         methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.http_req.method]]
         handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
         if handler != nothing
-           return prepare_response(handler(req, res), req, res)
+            return prepare_response(handler(req, res), req, res)
         end
         respond(req, Response(404))
     end
