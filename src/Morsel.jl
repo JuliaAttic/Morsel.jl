@@ -125,7 +125,7 @@ end
 
 function validatedvalue(value::Any, validator::Function)
     value == nothing && return nothing
-    if validator == string
+    if is(validator, string)
         value = sanitize(value)
     end
     validator(value)
