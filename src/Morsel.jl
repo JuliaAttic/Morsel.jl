@@ -119,9 +119,8 @@ put(h::Function, a::App, p::String)    = route(h, a, PUT, p)
 update(h::Function, a::App, p::String) = route(h, a, UPDATE, p)
 delete(h::Function, a::App, p::String) = route(h, a, DELETE, p)
 
-function sanitize(input::String)
-    replace(input,r"</?[^>]*>|</?|>","")
-end
+sanitize(input::String) = replace(input,r"</?[^>]*>|</?|>","")
+sanitize(x) = x
 
 function validatedvalue(value::Any, validator::Function)
     value == nothing && return nothing
@@ -132,7 +131,7 @@ function validatedvalue(value::Any, validator::Function)
 end
 
 function safelyaccess(req::MeddleRequest, stateKey::Symbol, valKey::Any, validator::Function)
-   haskey(req.state, stateKey) ? validatedvalue(get(req.state[stateKey], valKey, nothing), validator) : nothing
+    haskey(req.state, stateKey) ? validatedvalue(get(req.state[stateKey], valKey, nothing), validator) : nothing
 end
 
 # validator for getting unsafe ( raw ) input
@@ -188,7 +187,10 @@ prepare_response(r::Response, req::MeddleRequest, res::Response) = respond(req, 
 function start(app::App, port::Int)
 
     MorselApp = Midware() do req::MeddleRequest, res::Response
-        path = vcat(["/"], split(rstrip(req.http_req.resource,'/'),'/')[2:end])
+        path = String["/"]
+        for comp in split(req.state[:resource], '/')
+            !isempty(comp) && push!(path, comp)
+        end
         methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.http_req.method]]
         handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
         if handler != nothing

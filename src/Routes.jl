@@ -69,7 +69,10 @@ DataTypeNode(p::String, t::String) = DynamicNode(getname(p), DataTypeNodeBuilder
 
 # Build the params dataset – dispatch needed for both route types.
 extend_params(params::Params, v::RouteNode, p::String) = params
-extend_params(params::Params, v::DynamicNode, p::String) = params[v.name] = v.convert == nothing ? p : v.convert(p)
+function extend_params(params::Params, v::DynamicNode, p::String) 
+    params[v.name] = ((v.convert == nothing) ? p : v.convert(p))
+    params
+end
 
 typealias Route (RouteNode,Union(Function,Nothing)) # ('/about', function()...)
 isequal(r::Route, v) = isequal(r[1], v)
