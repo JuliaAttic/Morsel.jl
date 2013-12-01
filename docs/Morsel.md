@@ -1,22 +1,16 @@
 # Morsel
 
 Morsel is a Sintra-like micro framework for declaring routes and handling requests.
-It is built on top of [HttpServer.jl](https://github.com/hackerschool/HttpServer.jl)
-and [Meddle.jl](https://github.com/hackerschool/Meddle.jl).
+It is built on top of HttpServer.jl and Meddle.jl.
 
 ## Installation
 
     :::julia
-    # in REQUIRE
-    Morsel
-
-    # in REPL
     julia> Pkg.add("Morsel")
 
 ## Example
 
-Here is a brief example that will return a few different messages for different routes,
-if you run this and open `localhost:8000` you will see "This is the root" for GET, POST or PUT requests.
+Here is a brief example that will return a few different messages for different routes.
 The line `get(app, "/about") do ...` is shorthand for only serving GET requests through that route.
 
     :::julia
@@ -33,3 +27,10 @@ The line `get(app, "/about") do ...` is shorthand for only serving GET requests 
     end
 
     start(app, 8000)
+
+### Expected Behavior:
+
+The server will run on `localhost:8000`.
+
+For GET, POST, and PUT requests for `/`, you will get "This is the root" as a response.
+For GET requests for `/about`, you will get "This app is running on Morsel".
