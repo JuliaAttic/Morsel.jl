@@ -1,4 +1,4 @@
-# Morsel
+# [Morsel](https://github.com/hackerschool/Morsel.jl)
 
 Morsel is a Sintra-like micro framework for declaring routes and handling requests.
 It is built on top of HttpServer.jl and Meddle.jl.
