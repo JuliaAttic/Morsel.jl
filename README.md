@@ -11,7 +11,7 @@ and [Meddle.jl](https://github.com/hackerschool/Meddle.jl).
 Morsel 0.0.1
 
 # in REPL
-julia> Pkg2.add("Morsel")
+julia> Pkg.add("Morsel")
 ```
 
 ## Example
