@@ -12,7 +12,7 @@ post(app, "/") do req, res
 end
 
 # Route with URL vars
-route(app, "/hello/<id::Int>/<name::%[a-z]{3}[0-9]{2}>") do req, res
+route(app, GET, "/hello/<id::Int>/<name::%[a-z]{3}[0-9]{2}>") do req, res
     req.resources[:id] == 99 ? string("Go to hell ", req.resources[:name]) : string("Hello ", req.resources[:name])
 end
 
@@ -42,13 +42,13 @@ auth = Morsel.Midware() do req, res
     req, res
 end
 
-with(auth) do
+with(app, auth) do app
     get(app, "/private") do req, res
-        # ...   
-    end  
+        # ...
+    end
 end
 
-namespace(app, "/admin", auth) do
+namespace(app, "/admin", auth) do app
     get(app, "/pages/<page_id::Int>") do req, res
         page = get_page(req.resources[:page_id])
         render("viewName.ejl", page)
@@ -60,7 +60,7 @@ namespace(app, "/admin", auth) do
     end
 end
 
-route(app, "/*") do req, res
+route(app, GET, "/*") do req, res
     res.headers["Status"] = 404
     render("404.ejl")
 end
