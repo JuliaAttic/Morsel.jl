@@ -41,7 +41,7 @@ routing_tables() = (HttpMethodBitmask => RoutingTable)[method => RoutingTable()
                                             for method in HttpMethodBitmasks]
 
 # An 'App' is simply a dictionary linking each HTTP method to a `RoutingTable`.
-# The detault constructor produces an empty `RoutingTable` for member of
+# The default constructor produces an empty `RoutingTable` for members of
 # `HttpMethods`.
 #
 type App
@@ -54,7 +54,7 @@ end
 
 # This defines a route and adds it to the `app.routes` dictionary. As HTTP
 # methods are bitmasked integers they can be combined using the bitwise or
-# opperator, e.g. `GET | POST` refers to a `GET` method and a `POST` method.
+# operator, e.g. `GET | POST` refers to a `GET` method and a `POST` method.
 #
 # Example:
 #
@@ -161,7 +161,7 @@ function param(req::MeddleRequest, key::Symbol, validator::Function=string)
 end
 
 # `prepare_response` simply sets the data field of the `Response` to the input
-# string `s` and calls the middleware's `repsond` function.
+# string `s` and calls the middleware's `respond` function.
 #
 function prepare_response(data::String, req::MeddleRequest, res::Response)
     res.data = data
@@ -178,10 +178,10 @@ function prepare_response(data::(Int, String), req::MeddleRequest, res::Response
 end
 prepare_response(r::Response, req::MeddleRequest, res::Response) = respond(req, r)
 
-# `start` uses to `Http.jl` and `Meddle.jl` libraries to launch a webserver
+# `start` uses to `HttpServer.jl` and `Meddle.jl` packages to launch a webserver
 # running `app` on the desired `port`.
 #
-# This is a blocking function, anything that appears after it in the source
+# This is a blocking function.  Anything that appears after it in the source
 # file will not run.
 #
 function start(app::App, port::Int)
