@@ -192,7 +192,10 @@ function start(app::App, port::Int)
             !isempty(comp) && push!(path, comp)
         end
         methodizedRouteTable = app.routes[HttpMethodNameToBitmask[req.http_req.method]]
-        handler, req.state[:route_params] = match_route_handler(methodizedRouteTable, path)
+        handler, params = match_route_handler(methodizedRouteTable, path)
+        for kv in params
+          req.params[symbol(kv[1])] = kv[2]
+        end
         if handler != nothing
             return prepare_response(handler(req, res), req, res)
         end
@@ -200,7 +203,7 @@ function start(app::App, port::Int)
     end
 
     stack = middleware(DefaultHeaders, URLDecoder, CookieDecoder, BodyDecoder, MorselApp)
-    http = HttpHandler((req, res) -> Meddle.handle(stack, MeddleRequest(req,Dict{Symbol,Any}()), res))
+    http = HttpHandler((req, res) -> Meddle.handle(stack, MeddleRequest(req,Dict{Symbol,Any}(),Dict{Symbol,Any}()), res))
     http.events["listen"] = (port) -> println("Morsel is listening on $port...")
 
     server = Server(http)
