@@ -13,7 +13,7 @@ end
 
 # Route with URL vars
 route(app, GET, "/hello/<id::Int>/<name::%[a-z]{3}[0-9]{2}>") do req, res
-    req.resources[:id] == 99 ? string("Go to hell ", req.resources[:name]) : string("Hello ", req.resources[:name])
+    req.params[:id] == 99 ? string("Go to hell ", req.params[:name]) : string("Hello ", req.params[:name])
 end
 
 route(app, GET, "/") do req, res
@@ -50,13 +50,13 @@ end
 
 namespace(app, "/admin", auth) do app
     get(app, "/pages/<page_id::Int>") do req, res
-        page = get_page(req.resources[:page_id])
+        page = get_page(req.params[:page_id])
         render("viewName.ejl", page)
     end
 
     put(app, "/pages/<page_id::Int>") do req, res
-        update_page(get_page(req.resources[:page_id]), req.params)
-        redirect("/pages/", req.resources[:page_id])
+        update_page(get_page(req.params[:page_id]), req.params)
+        redirect("/pages/", req.params[:page_id])
     end
 end
 
