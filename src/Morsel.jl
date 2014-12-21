@@ -19,6 +19,7 @@ export App,
        routeparam,
        param,
        unsafestring,
+       redirect,
 
        # from HttpCommon
        GET,
@@ -177,6 +178,15 @@ function prepare_response(data::(Int, String), req::MeddleRequest, res::Response
     respond(req, res)
 end
 prepare_response(r::Response, req::MeddleRequest, res::Response) = respond(req, r)
+
+function redirect(r::Response, location::String, status::Int)
+  r.status = status
+  r.headers["Location"] = location
+
+  r
+end
+
+redirect(r::Response, location::String) = redirect(r, location, 302) # status 302, Moved Temporarily
 
 # `start` uses to `HttpServer.jl` and `Meddle.jl` packages to launch a webserver
 # running `app` on the desired `port`.

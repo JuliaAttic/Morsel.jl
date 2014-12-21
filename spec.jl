@@ -37,7 +37,7 @@ route(app, POST, "/upload", handleImageUpload)
 # Route middleware
 auth = Morsel.Midware() do req, res
     if !get(session(req), :authenticated, false)
-        return req, redirect("/login")
+        return req, redirect(res, "/login")
     end
     req, res
 end
@@ -56,7 +56,7 @@ namespace(app, "/admin", auth) do app
 
     put(app, "/pages/<page_id::Int>") do req, res
         update_page(get_page(req.params[:page_id]), req.params)
-        redirect("/pages/", req.params[:page_id])
+        redirect(res, "/pages/", req.params[:page_id])
     end
 end
 
