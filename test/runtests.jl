@@ -76,3 +76,14 @@ facts("route") do
         @fact req.get("http://localhost:8000/namespace/hello").data => "hello namespace"
     end
 end
+
+facts("redirect") do
+    get(app, "/redirect302") do req, res
+        redirect(res, "/") # the default status is 302
+
+    end
+
+    response = req.get("http://localhost:8000/redirect302")
+    @fact response.status => 302
+    @fact response.headers["Location"] => "/"
+end
