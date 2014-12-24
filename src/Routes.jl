@@ -50,6 +50,8 @@ DynamicNode(p::String, c::Function) = DynamicNode(getname(p), Regex("^$(match(r"
 # Equality & Matching for building / traversing the routing table
 isequal(s1::DynamicNode, s2::String)      = Base.ismatch( s1.regex, s2 )
 isequal(s1::DynamicNode, s2::DynamicNode) = s1.regex.pattern == s2.regex.pattern && s1.name == s2.name
+isequal(s1::DynamicNode, s2::StringNode) = Base.ismatch(s1.regex, s2.val)
+isequal(s1::StringNode, s2::DynamicNode) = Base.ismatch(s2.regex, s1.val)
 ismatch(s1::DynamicNode, s2::String)      = isequal( s1, s2 )
 
 # NamedParam & Regex node constructors, these are NOT types.
