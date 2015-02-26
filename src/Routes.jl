@@ -28,7 +28,7 @@ getname(p::String) = Base.ismatch(r"^<([^\:]*)::", p) ? match(r"^<([^\:]*)::", p
 #
 # DynamicNodes are used for three kinds of nodes:
 #
-#   - NamedParamNodes:     "/foo/<bar>" 
+#   - NamedParamNodes:     "/foo/<bar>"
 #            => matches    "/foo/*", adds `req.params[:bar]::String`
 #
 #   - RegexNodes:          "/foo/<bar::%[0-9][0-9]-[A-Z]{5}>"
@@ -61,17 +61,18 @@ RegexNode(p::String)      = DynamicNode(getname(p), Regex("^$(match(r":%([^>]*)>
 # All valid DataTypeNode types -- provides `regex` validator + converter.
 # Should be exposed to users for extension with custom DataTypes?
 #
-const DataTypeNodeBuilders = (String => (Regex, Function))[ 
+const DataTypeNodeBuilders = @compat Dict(
     "Int"   => (r"^[0-9]*$", int),
     "Float" => (r"^[0-9]*\.[0-9]*$", float),
     "String"=> (r"^.*$", string)
-]
+)
+
 # DataType node constructor, also NOT a type.
 DataTypeNode(p::String, t::String) = DynamicNode(getname(p), DataTypeNodeBuilders[t]...)
 
 # Build the params dataset – dispatch needed for both route types.
 extend_params(params::Params, v::RouteNode, p::String) = params
-function extend_params(params::Params, v::DynamicNode, p::String) 
+function extend_params(params::Params, v::DynamicNode, p::String)
     params[v.name] = ((v.convert == nothing) ? p : v.convert(p))
     params
 end
@@ -89,15 +90,15 @@ ismatch(node::String, resource_chunk::String) = node == resource_chunk
 # Regex matchers for determining DynamicRoute types =>
 # Functions for building matching type from `part`.
 #
-const dynamic_route_dispatch = (Regex => Function)[
+const dynamic_route_dispatch = @compat Dict(
     r"^<[^:%]*::%"          => RegexNode,
     r"^<[^:>]*::[^%>]*>$"   => part -> DataTypeNode(part, match(r"^<[^:>]*::([^%>]*)>$", part).captures[1]),
     r"^<[^:>]*>$"           => NamedParamNode
-]
+)
 
 # Run for each part of a route, builds RouteNodes.
 function parse_part(part::String)
-    if length(part) > 0 && Base.ismatch(r"^<[^>]*>$", part) 
+    if length(part) > 0 && Base.ismatch(r"^<[^>]*>$", part)
         for v in dynamic_route_dispatch
             if Base.ismatch(v[1], part)
                 return v[2](part)
@@ -132,7 +133,7 @@ end
 function register!(table::RoutingTable, resource::String, handler::Function)
     path = path_to_handler(resource, handler)
     # NOTE: a bit hack-ey, but fixes the root routing problem
-    if resource == "/" 
+    if resource == "/"
         table.value = path[1]
     else
         insert!(table, path)

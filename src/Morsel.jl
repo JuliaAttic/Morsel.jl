@@ -1,6 +1,7 @@
 module Morsel
 
-using HttpServer,
+using Compat,
+      HttpServer,
       HttpCommon,
       Meddle
 
