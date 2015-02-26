@@ -1,6 +1,7 @@
 The MIT License (MIT)
 
-Copyright (c) 2013 Daniel Espeset, Zach Allaun, Nick Collins, David Lundgren
+Copyright (c) 2013-2015 Daniel Espeset, Zach Allaun, Nick Collins, David
+Lundgren and [other contributors](https://github.com/JuliaWeb/Morsel.jl/graphs/contributors)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

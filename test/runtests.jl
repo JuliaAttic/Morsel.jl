@@ -45,7 +45,7 @@ facts("route") do
     end
 
     facts("dynamic route") do
-        context("the request will succes if the type is right") do
+        context("the request will succeed if the type is right") do
             route(app, GET, "/users/<id::Int>" ) do req, res
                 string("User id is:", req.params[:id])
             end
