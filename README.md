@@ -10,7 +10,7 @@ and [Meddle.jl](https://github.com/JuliaWeb/Meddle.jl).
 
 **Installation**: `Pkg.add("Morsel")`
 
-## Example
+## Examples
 
 Here is a brief example that will return a few different messages for different routes,
 if you run this and open `localhost:8000` you will see "This is the root" for GET, POST or PUT requests.
@@ -31,6 +31,15 @@ end
 
 start(app, 8000)
 ```
+
+[Here](https://bitbucket.org/jocklawrie/skeleton-webapp.jl) is an example that:
+
+- Reads data from a csv
+- Runs a linear regression
+- Produces some interactive charts that can be viewed in your browser
+
+The accompanying documentation is written for data scientists who have never written a web app before.
+
 
 ---
 
