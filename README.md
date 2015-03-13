@@ -1,8 +1,8 @@
 ## Morsel
 
-[![Morsel on Julia release](http://pkg.julialang.org/badges/Morsel_release.svg)](http://pkg.julialang.org/?pkg=Morsel&ver=release)
-[![Morsel on Julia nightly](http://pkg.julialang.org/badges/Morsel_nightly.svg)](http://pkg.julialang.org/?pkg=Morsel&ver=nightly)
 [![Build Status](https://travis-ci.org/JuliaWeb/Morsel.jl.svg?branch=master)](https://travis-ci.org/JuliaWeb/Morsel.jl)
+[![Coverage Status](https://coveralls.io/repos/JuliaWeb/Morsel.jl/badge.svg?branch=master)](https://coveralls.io/r/JuliaWeb/Morsel.jl?branch=master)
+[![Morsel on Julia release](http://pkg.julialang.org/badges/Morsel_release.svg)](http://pkg.julialang.org/?pkg=Morsel&ver=release)
 
 Morsel is a Sinatra-like micro framework for declaring routes and handling requests.
 It is built on top of [HttpServer.jl](https://github.com/JuliaWeb/HttpServer.jl)
