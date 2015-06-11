@@ -3,7 +3,10 @@ module Morsel
 using Compat,
       HttpServer,
       HttpCommon,
-      Meddle
+      Meddle,
+      Compat
+
+import Base.start
 
 export App,
        app,
@@ -173,7 +176,7 @@ function prepare_response(status::Int, req::MeddleRequest, res::Response)
     res.status = status
     respond(req, res)
 end
-function prepare_response(data::(Int, String), req::MeddleRequest, res::Response)
+function prepare_response(data::@compat(Tuple{Int, String}), req::MeddleRequest, res::Response)
     res.status = data[1]
     res.data = data[2]
     respond(req, res)
