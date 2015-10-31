@@ -2,23 +2,25 @@
 
 ---
 
-> **2015-09-03**: This package is deprecated & abandoned.
+> **2015-09-03**:
+> This package is deprecated, and does not have an active maintainer.
 > It is not recommended for use in new projects.
-> If you'd like to "revive" it, please submit a PR updating the package.
-> Commit access will be given to anyone interested in taking on maintanence and/or development.
-> An alternative package is [Mux.jl](https://github.com/one-more-minute/Mux.jl).
+> Commit access may be given to anyone interested in taking on reviving,
+> maintaining, or furthering development.
+> If you are interested, please submit a PR that updates the package.
+> An alternative package is [Mux.jl](https://github.com/JuliaWeb/Mux.jl).
 
 ---
 
-[![Build Status](https://travis-ci.org/JuliaWeb/Morsel.jl.svg?branch=master)](https://travis-ci.org/JuliaWeb/Morsel.jl)
-[![Coverage Status](https://coveralls.io/repos/JuliaWeb/Morsel.jl/badge.svg?branch=master)](https://coveralls.io/r/JuliaWeb/Morsel.jl?branch=master)
+[![Build Status](https://travis-ci.org/JuliaDeprecated/Morsel.jl.svg?branch=master)](https://travis-ci.org/JuliaDeprecated/Morsel.jl)
+[![Coverage Status](https://coveralls.io/repos/JuliaDeprecated/Morsel.jl/badge.svg?branch=master)](https://coveralls.io/r/JuliaDeprecated/Morsel.jl?branch=master)
 
 [![Morsel](http://pkg.julialang.org/badges/Morsel_0.3.svg)](http://pkg.julialang.org/?pkg=Morsel&ver=0.3)
 [![Morsel](http://pkg.julialang.org/badges/Morsel_0.4.svg)](http://pkg.julialang.org/?pkg=Morsel&ver=0.4)
 
 Morsel is a Sinatra-like micro framework for declaring routes and handling requests.
 It is built on top of [HttpServer.jl](https://github.com/JuliaWeb/HttpServer.jl)
-and [Meddle.jl](https://github.com/JuliaWeb/Meddle.jl).
+and [Meddle.jl](https://github.com/JuliaDeprecated/Meddle.jl).
 
 **Installation**: `Pkg.add("Morsel")`
 
